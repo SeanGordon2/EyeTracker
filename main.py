@@ -42,13 +42,20 @@ else:
         # print(len(facial_landmarks))
         # print(facial_landmarks[0].x, facial_landmarks[0].y, facial_landmarks[0].z)
         landmark_point_list = []
-        for i in range(0, 478):
-            point = facial_landmarks[i]
-            x = int(point.x * width)
-            y = int(point.y * height)
+        # for i in range(0, 478):
+        #     point = facial_landmarks[i]
+        #     x = int(point.x * width)
+        #     y = int(point.y * height)
+        #
+        #     cv2.circle(image, (x, y), 2, (100, 100, 0), -1)  # To place coloured circle by points.
+        #     # cv2.putText(image, str(i), (x, y), 0, 1, (0, 0, 0))  # To place numbers by text.
 
-            cv2.circle(image, (x, y), 2, (100, 100, 0), -1)  # To place coloured circle by points.
-            # cv2.putText(image, str(i), (x, y), 0, 1, (0, 0, 0))  # To place numbers by text.
+        # Test line.
+        point = facial_landmarks[473]
+        x = int(point.x * width)
+        y = int(point.y * height)
+
+        cv2.circle(image, (x, y), 10, (100, 100, 0), -1)  # To place coloured circle by points.
 
     cv2.imshow("image", image)
     cv2.waitKey(0)

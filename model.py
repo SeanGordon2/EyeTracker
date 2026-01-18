@@ -56,11 +56,12 @@ def validate_file_status(file_path):
     return file_category
 
 
-def visualise_landmarks(frame, detection_result):
+def visualise_landmarks(frame, detection_result, eyes=True):
     """
     Draws detected landmarks as points on the image.
     :param frame:
     :param detection_result:
+    :param eyes: Set True as default. Visualises eye markers only.
     :return:
     """
     if not detection_result or not detection_result.face_landmarks:
@@ -69,22 +70,45 @@ def visualise_landmarks(frame, detection_result):
     # Get frame dimensions
     height, width, _ = frame.shape
 
+    left_iris = [468, 469, 470, 471, 472]
+    right_iris = [473, 474, 475, 476, 477]
+    left_eye_outline = [33, 7, 163, 144, 145, 153, 154, 155, 133, 173, 157, 158, 159, 160, 161, 246]
+    right_eye_outline = [362, 382, 381, 380, 374, 373, 390, 249, 263, 466, 388, 387, 386, 385, 384, 398]
+    eye_markers = left_iris + right_iris + left_eye_outline + right_eye_outline
+
     # MediaPipe returns a list of pose_landmarks (usually one per person)
     for face_landmarks in detection_result.face_landmarks:
-        for landmark in face_landmarks:
-            # Convert normalized coordinates (0-1) to pixel coordinates
-            x_px = int(landmark.x * width)
-            y_px = int(landmark.y * height)
+        if eyes:
+            for i in eye_markers:
+                landmark = face_landmarks[i]
+                # Convert normalized coordinates (0-1) to pixel coordinates
+                x_px = int(landmark.x * width)
+                y_px = int(landmark.y * height)
 
-            # Draw a small circle at the landmark position
-            # cv2.circle(image, center_coordinates, radius, color, thickness)
-            cv2.circle(frame, (x_px, y_px), 2, (100, 100, 0), -1)
+                # Draw a small circle at the landmark position
+                # cv2.circle(image, center_coordinates, radius, color, thickness)
+                cv2.circle(frame, (x_px, y_px), 2, (100, 100, 0), -1)
+        else:
+            for landmark in face_landmarks:
+                # Convert normalized coordinates (0-1) to pixel coordinates
+                x_px = int(landmark.x * width)
+                y_px = int(landmark.y * height)
+
+                # Draw a small circle at the landmark position
+                # cv2.circle(image, center_coordinates, radius, color, thickness)
+                cv2.circle(frame, (x_px, y_px), 2, (100, 100, 0), -1)
 
     return frame
 
 
-def mediapipe_initialise(file_path, file_type):
-
+def mediapipe_initialise(file_path, file_type, eyes=True):
+    """
+    Function to initialise MediaPipe and visualise result.
+    :param file_path: string entry of file path.
+    :param file_type: string entry in form "image", "video", or other.
+    :param eyes: True to visualise eyes only, set to False if total face to be visualised. True by default.
+    :return:
+    """
     # Path to downloaded .task file.
     model_path = os.path.abspath("face_landmarker.task")
 
@@ -117,7 +141,7 @@ def mediapipe_initialise(file_path, file_type):
                 # MediaPipe returns it as RGB, OpenCV needs BGR to display colors correctly
                 output_image = cv2.cvtColor(output_image, cv2.COLOR_RGB2BGR)
 
-            annotated_image = visualise_landmarks(output_image, face_landmarker_result)
+            annotated_image = visualise_landmarks(output_image, face_landmarker_result, eyes)
             cv2.imshow("Annotated image", annotated_image)
             cv2.waitKey(0)
 
@@ -154,7 +178,7 @@ def mediapipe_initialise(file_path, file_type):
                     face_landmarker_result = landmarker.detect_for_video(mp_image, frame_timestamp_ms)
 
                     # Visualise result.
-                    annotated_frame = visualise_landmarks(frame, face_landmarker_result)
+                    annotated_frame = visualise_landmarks(frame, face_landmarker_result, eyes)
                     cv2.imshow('Face Detection', annotated_frame)
                     if cv2.waitKey(1) & 0xFF == ord('q'):
                         break
@@ -169,10 +193,35 @@ def mediapipe_initialise(file_path, file_type):
         return "Success"
 
 
+def eye_landmark_indices():
+    """
+    Function to output indices of important eye landmarks to assess eye shape and movement.
+    :return: 2 lists (left & right eyes) containing lists of indices for iris, eye corners, eyelids, and eye outlines.
+    """
+    left_iris = [468, 469, 470, 471, 472]
+    right_iris = [473, 474, 475, 476, 477]
+
+    left_eye_corners = [33, 133]
+    right_eye_corners = [362, 263]
+
+    left_eyelids = [159, 145]
+    right_eyelids = [386, 374]
+
+    left_eye_outline = [33, 7, 163, 144, 145, 153, 154, 155, 133, 173, 157, 158, 159, 160, 161, 246]
+    right_eye_outline = [362, 382, 381, 380, 374, 373, 390, 249, 263, 466, 388, 387, 386, 385, 384, 398]
+
+    left_eye = [left_iris, left_eye_corners, left_eyelids, left_eye_outline]
+    right_eye = [right_iris, right_eye_corners, right_eyelids, right_eye_outline]
+
+    return left_eye, right_eye
+
+
 def test_run(file_path):
     file_category = validate_file_status(file_path)
-    mediapipe_initialise(file_path, file_category)
+    mediapipe_initialise(file_path, file_category, False)
 
 
-file_path = 'images/pathology_test.jpg'
+file_path = 'images/test_image.jpeg'
+# file_path = 'videos/karentest.mov'
+
 test_run(file_path)
