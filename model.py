@@ -174,10 +174,5 @@ def test_run(file_path):
     mediapipe_initialise(file_path, file_category)
 
 
-
-# image = cv2.imread('images/pathology_test.jpg')
-# height, width, _ = image.shape
-
-# file_path = 'images/pathology_test.jpg'
-file_path = 'videos/seantest.mov'
+file_path = 'images/pathology_test.jpg'
 test_run(file_path)
